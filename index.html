@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arsa Payı ve Değer Hesaplayıcı (Pro)</title>
+    <style>
+        /* --- GENEL AYARLAR (iPhone/Mobil Uyumlu) --- */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f2f2f7; 
+            margin: 0; 
+            padding: 10px; 
+            color: #1c1c1e;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column; /* Mobilde alt alta */
+            gap: 15px;
+        }
+
+        /* Masaüstünde yan yana dursun */
+        @media (min-width: 768px) {
+            .container { flex-direction: row; align-items: flex-start; }
+            .card { flex: 1; }
+        }
+
+        /* --- KART YAPISI --- */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        h2 { 
+            margin-top: 0; 
+            font-size: 1.1rem; 
+            color: #1c1c1e; 
+            text-align: center; 
+            border-bottom: 1px solid #e5e5ea; 
+            padding-bottom: 10px; 
+            margin-bottom: 15px;
+        }
+        
+        /* --- FORM ELEMANLARI --- */
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #8e8e93; }
+        
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #d1d1d6; 
+            border-radius: 8px; 
+            font-size: 16px; /* iPhone'da zoom yapmaması için kritik */
+            box-sizing: border-box;
+            background-color: #f2f2f7;
+            -webkit-appearance: none;
+            color: #1c1c1e;
+        }
+        input:focus { border-color: #007aff; background-color: #fff; outline: none; }
+
+        .row-inputs { display: flex; gap: 10px; }
+        .row-inputs .form-group { flex: 1; }
+
+        /* --- BUTONLAR --- */
+        .btn-container { display: flex; gap: 10px; margin-top: 15px; }
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:active { transform: scale(0.98); opacity: 0.8; }
+
+        .btn-calc { background-color: #007aff; color: white; } /* Mavi */
+        .btn-update { background-color: #ff9500; color: white; } /* Turuncu */
+        .btn-reset { background-color: #e5e5ea; color: #1c1c1e; } /* Gri */
+
+        /* --- SONUÇ ALANI --- */
+        .result-area {
+            margin-top: 20px;
+            background-color: #f2f2f7;
+            border-radius: 10px;
+            padding: 15px;
+            display: none; /* Başlangıçta gizli */
+        }
+        .res-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+        .res-row span:first-child { color: #666; }
+        .res-row strong { color: #000; font-weight: 600; }
+        .highlight { color: #007aff !important; font-size: 1.1rem; }
+
+        /* --- TABLO (LİSTE) --- */
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 300px; }
+        th { text-align: left; background: #f2f2f7; padding: 10px; color: #8e8e93; font-weight: 600; }
+        td { padding: 12px 10px; border-bottom: 1px solid #e5e5ea; vertical-align: middle; }
+        
+        .action-btns { display: flex; gap: 6px; justify-content: flex-end; }
+        .btn-sm { padding: 8px 12px; font-size: 0.8rem; border-radius: 6px; flex: none; width: auto; }
+        .btn-edit { background-color: #ff9500; color: white; }
+        .btn-del { background-color: #ff3b30; color: white; }
+
+        /* Düzenleme Modu Bannerı */
+        #editBanner {
+            background-color: #ff9500; color: white; text-align: center; padding: 8px; 
+            border-radius: 8px; margin-bottom: 15px; display: none; font-weight: bold; font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="card">
+        <h2>Veri Girişi ve Hesaplama</h2>
+        
+        <div id="editBanner">Düzenleme Modu Aktif</div>
+        <input type="hidden" id="recordId"> <div class="form-group">
+            <label>Kayıt Adı / Blok / Daire No</label>
+            <input type="text" id="kayitAdi" placeholder="Örn: A Blok Daire 5">
+        </div>
+
+        <div class="form-group">
+            <label>Arsa Alanı (m²)</label>
+            <input type="number" id="arsaAlani" inputmode="decimal">
+        </div>
+
+        <div class="row-inputs">
+            <div class="form-group">
+                <label>Arsa Pay</label>
+                <input type="number" id="arsaPay" inputmode="decimal">
+            </div>
+            <div class="form-group">
+                <label>Arsa Payda</label>
+                <input type="number" id="arsaPayda" inputmode="decimal">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Daire Alanı (m²)</label>
+            <input type="number" id="daireAlani" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>Yapı Birim Maliyeti (TL/m²)</label>
+            <input type="number" id="yapiMaliyeti" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>Toplam Değer (TL)</label>
+            <input type="number" id="toplamDeger" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>Şerefiye Oranı  Müteahhit Karı (%)</label>
+            <input type="number" id="serefiyeOrani" inputmode="decimal">
+        </div>
+
+        <div class="btn-container">
+            <button class="btn-calc" id="btnIslem" onclick="kaydetVeHesapla()">HESAPLA & KAYDET</button>
+        </div>
+        <div class="btn-container" style="margin-top:10px;">
+             <button class="btn-reset" onclick="temizle()">Temizle / Yeni Kayıt</button>
+        </div>
+
+        <div class="result-area" id="sonucAlani">
+            <div class="res-row"><span>Arsa Payı Alanı:</span> <strong id="resArsaPayiAlani">0</strong></div>
+            <div class="res-row"><span>Toplam Yapı Maliyeti:</span> <strong id="resYapiMaliyeti">0</strong></div>
+            <div class="res-row"><span>Şerefiye Değeri:</span> <strong id="resSerefiye">0</strong></div>
+            <div class="res-row"><span>Arsa Değeri:</span> <strong id="resArsaDegeri">0</strong></div>
+            <div style="border-top:1px solid #d1d1d6; margin:8px 0;"></div>
+            <div class="res-row"><span>Birim Değer:</span> <strong class="highlight" id="resBirimDeger">0</strong></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Kaydedilenler</h2>
+        <div class="table-wrapper">
+            <table id="listeTablosu">
+                <thead>
+                    <tr>
+                        <th>Tanım</th>
+                        <th>Birim Değer</th>
+                        <th style="text-align:right">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+        <div id="bosMesaj" style="text-align:center; padding:20px; color:#999; font-size:0.9rem;">Henüz kayıt yok.</div>
+    </div>
+
+</div>
+
+<script>
+    // Sayfa Yüklendiğinde
+    document.addEventListener('DOMContentLoaded', listeyiGuncelle);
+
+    // Para Formatı (1.000,00 TL gibi)
+    function formatTL(num) {
+        return num.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // --- MATEMATİKSEL HESAPLAMA FONKSİYONU ---
+    // Bu fonksiyon sadece değerleri alır, hesaplar ve bir obje döndürür.
+    function hesapla(veri) {
+        // 1. Arsa Payı Alanı = Arsa Alanı x Arsa Pay / Arsa Payda
+        let arsaPayiAlani = (veri.arsaAlani * veri.arsaPay) / (veri.arsaPayda || 1);
+
+        // 2. Toplam Yapı Maliyeti = Daire Alanı x Yapı Birim Maliyeti
+        let toplamYapiMaliyeti = veri.daireAlani * veri.yapiMaliyeti;
+
+        // 3. Şerefiye = Toplam Değer x (Şerefiye Oranı / 100)
+        let serefiyeDegeri = veri.toplamDeger * (veri.serefiyeOrani / 100);
+
+        // 4. Arsa Değeri = Toplam Değer - (Yapı Maliyeti + Şerefiye)
+        let arsaDegeri = veri.toplamDeger - (toplamYapiMaliyeti + serefiyeDegeri);
+
+        // 5. Birim Değer = Arsa Değeri / Arsa Payı Alanı
+        let birimDeger = 0;
+        if(arsaPayiAlani > 0) {
+            birimDeger = arsaDegeri / arsaPayiAlani;
+        }
+
+        return {
+            arsaPayiAlani,
+            toplamYapiMaliyeti,
+            serefiyeDegeri,
+            arsaDegeri,
+            birimDeger
+        };
+    }
+
+    // --- EKRANA SONUÇ YAZMA FONKSİYONU ---
+    function sonuclariGoster(sonuc) {
+        document.getElementById('resArsaPayiAlani').innerText = formatTL(sonuc.arsaPayiAlani) + " m²";
+        document.getElementById('resYapiMaliyeti').innerText = formatTL(sonuc.toplamYapiMaliyeti) + " TL";
+        document.getElementById('resSerefiye').innerText = formatTL(sonuc.serefiyeDegeri) + " TL";
+        document.getElementById('resArsaDegeri').innerText = formatTL(sonuc.arsaDegeri) + " TL";
+        document.getElementById('resBirimDeger').innerText = formatTL(sonuc.birimDeger) + " TL/m²";
+        
+        document.getElementById('sonucAlani').style.display = 'block';
+    }
+
+    // --- VERİLERİ OKUMA ---
+    function formVerileriniAl() {
+        return {
+            id: document.getElementById('recordId').value,
+            ad: document.getElementById('kayitAdi').value || 'İsimsiz Kayıt',
+            arsaAlani: parseFloat(document.getElementById('arsaAlani').value) || 0,
+            arsaPay: parseFloat(document.getElementById('arsaPay').value) || 0,
+            arsaPayda: parseFloat(document.getElementById('arsaPayda').value) || 1,
+            daireAlani: parseFloat(document.getElementById('daireAlani').value) || 0,
+            yapiMaliyeti: parseFloat(document.getElementById('yapiMaliyeti').value) || 0,
+            toplamDeger: parseFloat(document.getElementById('toplamDeger').value) || 0,
+            serefiyeOrani: parseFloat(document.getElementById('serefiyeOrani').value) || 0
+        };
+    }
+
+    // --- ANA İŞLEM (BUTONA BASINCA) ---
+    function kaydetVeHesapla() {
+        let veri = formVerileriniAl();
+        let sonuc = hesapla(veri);
+
+        // 1. Hesaplananları Ekrana Bas
+        sonuclariGoster(sonuc);
+
+        // 2. Kayıt Objesini Hazırla
+        let yeniKayit = {
+            id: veri.id ? parseInt(veri.id) : Date.now(),
+            ad: veri.ad,
+            inputs: veri,  // Girdileri sakla
+            results: sonuc // Sonuçları da sakla (listeleme hızı için)
+        };
+
+        // 3. LocalStorage İşlemleri
+        let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
+
+        if (veri.id) {
+            // Güncelleme
+            let index = kayitlar.findIndex(k => k.id == veri.id);
+            if(index !== -1) kayitlar[index] = yeniKayit;
+        } else {
+            // Yeni Ekleme
+            kayitlar.push(yeniKayit);
+        }
+
+        localStorage.setItem('emlakDB', JSON.stringify(kayitlar));
+
+        // 4. Listeyi Güncelle
+        listeyiGuncelle();
+        
+        // Eğer güncelleme ise işlem bitince formu temizle, 
+        // yeniyse kullanıcı sonucu görsün diye bırakıyoruz (tercihen).
+        if(veri.id) {
+            temizle();
+        }
+    }
+
+    // --- LİSTELEME ---
+    function listeyiGuncelle() {
+        let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
+        let tbody = document.querySelector('#listeTablosu tbody');
+        tbody.innerHTML = '';
+
+        if(kayitlar.length === 0) {
+            document.getElementById('bosMesaj').style.display = 'block';
+        } else {
+            document.getElementById('bosMesaj').style.display = 'none';
+            // Tersten sırala (En son eklenen en üstte)
+            kayitlar.slice().reverse().forEach(k => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div style="font-weight:bold;">${k.ad}</div>
+                    </td>
+                    <td>${formatTL(k.results.birimDeger)}</td>
+                    <td style="text-align:right">
+                        <div class="action-btns">
+                            <button class="btn-sm btn-edit" onclick="duzenle(${k.id})">Düzenle</button>
+                            <button class="btn-sm btn-del" onclick="sil(${k.id})">Sil</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    }
+
+    // --- SİLME ---
+    function sil(id) {
+        if(confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+            let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
+            kayitlar = kayitlar.filter(k => k.id !== id);
+            localStorage.setItem('emlakDB', JSON.stringify(kayitlar));
+            listeyiGuncelle();
+            
+            // Eğer o an düzenlenen kaydı sildiysek formu da temizle
+            if(document.getElementById('recordId').value == id) {
+                temizle();
+            }
+        }
+    }
+
+    // --- DÜZENLEME (İstediğiniz kritik özellik burada) ---
+    function duzenle(id) {
+        let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
+        let k = kayitlar.find(item => item.id === id);
+
+        if(k) {
+            // 1. Kutucukları Doldur
+            document.getElementById('recordId').value = k.id;
+            document.getElementById('kayitAdi').value = k.ad;
+            document.getElementById('arsaAlani').value = k.inputs.arsaAlani;
+            document.getElementById('arsaPay').value = k.inputs.arsaPay;
+            document.getElementById('arsaPayda').value = k.inputs.arsaPayda;
+            document.getElementById('daireAlani').value = k.inputs.daireAlani;
+            document.getElementById('yapiMaliyeti').value = k.inputs.yapiMaliyeti;
+            document.getElementById('toplamDeger').value = k.inputs.toplamDeger;
+            document.getElementById('serefiyeOrani').value = k.inputs.serefiyeOrani;
+
+            // 2. Arayüzü Güncelleme Moduna Sok
+            document.getElementById('editBanner').style.display = 'block';
+            let btn = document.getElementById('btnIslem');
+            btn.innerText = "GÜNCELLE";
+            btn.className = "btn-update"; // Rengi turuncu yap
+
+            // 3. KRİTİK ADIM: Sonuçları hemen hesapla ve göster
+            // Böylece kullanıcı "Düzenle" dediği an alttaki gri kutu açılır.
+            let sonuc = hesapla(k.inputs);
+            sonuclariGoster(sonuc);
+
+            // 4. Yukarı kaydır
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    // --- TEMİZLEME ---
+    function temizle() {
+        document.getElementById('recordId').value = '';
+        document.getElementById('kayitAdi').value = '';
+        document.getElementById('arsaAlani').value = '';
+        document.getElementById('arsaPay').value = '';
+        document.getElementById('arsaPayda').value = '';
+        document.getElementById('daireAlani').value = '';
+        document.getElementById('yapiMaliyeti').value = '';
+        document.getElementById('toplamDeger').value = '';
+        document.getElementById('serefiyeOrani').value = '';
+
+        // Sonuç alanını gizle
+        document.getElementById('sonucAlani').style.display = 'none';
+
+        // Butonu ve arayüzü varsayılana çevir
+        document.getElementById('editBanner').style.display = 'none';
+        let btn = document.getElementById('btnIslem');
+        btn.innerText = "HESAPLA & KAYDET";
+        btn.className = "btn-calc"; // Rengi mavi yap
+    }
+</script>
+
+</body>
+</html>
