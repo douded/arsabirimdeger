@@ -47,6 +47,32 @@
             margin-bottom: 15px;
         }
         
+        /* --- SEKME BUTONLARI --- */
+        .tabs {
+            display: flex;
+            margin-bottom: 12px;
+            background-color: #f2f2f7;
+            padding: 4px;
+            border-radius: 10px;
+        }
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #8e8e93;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tab-btn.active {
+            background-color: #ffffff;
+            color: #007aff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+
         /* --- FORM ELEMANLARI --- */
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #8e8e93; }
@@ -56,7 +82,7 @@
             padding: 12px; 
             border: 1px solid #d1d1d6; 
             border-radius: 8px; 
-            font-size: 16px; /* iPhone'da zoom yapmaması için kritik */
+            font-size: 16px; 
             box-sizing: border-box;
             background-color: #f2f2f7;
             -webkit-appearance: none;
@@ -81,9 +107,9 @@
         }
         button:active { transform: scale(0.98); opacity: 0.8; }
 
-        .btn-calc { background-color: #007aff; color: white; } /* Mavi */
-        .btn-update { background-color: #ff9500; color: white; } /* Turuncu */
-        .btn-reset { background-color: #e5e5ea; color: #1c1c1e; } /* Gri */
+        .btn-calc { background-color: #007aff; color: white; }
+        .btn-update { background-color: #ff9500; color: white; }
+        .btn-reset { background-color: #e5e5ea; color: #1c1c1e; }
 
         /* --- SONUÇ ALANI --- */
         .result-area {
@@ -91,7 +117,6 @@
             background-color: #f2f2f7;
             border-radius: 10px;
             padding: 15px;
-            display: none; /* Başlangıçta gizli */
         }
         .res-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
         .res-row span:first-child { color: #666; }
@@ -122,46 +147,55 @@
     
     <div class="card">
         <h2>Veri Girişi ve Hesaplama</h2>
+
+        <!-- SEKME BUTONLARI -->
+        <div class="tabs">
+            <button id="tabPay"  class="tab-btn active" onclick="sekmeDegistir('pay')">Arsa Payı</button>
+            <button id="tabAlan" class="tab-btn"         onclick="sekmeDegistir('alan')">Arsa Alanı</button>
+        </div>
         
         <div id="editBanner">Düzenleme Modu Aktif</div>
-        <input type="hidden" id="recordId"> <div class="form-group">
-            <label>Kayıt Adı / Blok / Daire No</label>
+        <input type="hidden" id="recordId">
+
+        <div class="form-group">
+            <label for="kayitAdi">Kayıt Adı / Blok / Daire No</label>
             <input type="text" id="kayitAdi" placeholder="Örn: A Blok Daire 5">
         </div>
 
         <div class="form-group">
-            <label>Arsa Alanı (m²)</label>
+            <label for="arsaAlani" id="labelArsaAlani">Parsel Arsa Alanı (m²)</label>
             <input type="number" id="arsaAlani" inputmode="decimal">
         </div>
 
-        <div class="row-inputs">
+        <!-- Bu satır sadece "Arsa Payı" sekmesinde görünecek -->
+        <div class="row-inputs" id="rowPayGroup">
             <div class="form-group">
-                <label>Arsa Pay</label>
+                <label for="arsaPay">Arsa Pay</label>
                 <input type="number" id="arsaPay" inputmode="decimal">
             </div>
             <div class="form-group">
-                <label>Arsa Payda</label>
+                <label for="arsaPayda">Arsa Payda</label>
                 <input type="number" id="arsaPayda" inputmode="decimal">
             </div>
         </div>
 
         <div class="form-group">
-            <label>Daire Alanı (m²)</label>
+            <label for="daireAlani">Daire Alanı (m²)</label>
             <input type="number" id="daireAlani" inputmode="decimal">
         </div>
 
         <div class="form-group">
-            <label>Yapı Birim Maliyeti (TL/m²)</label>
+            <label for="yapiMaliyeti">Yapı Birim Maliyeti (TL/m²)</label>
             <input type="number" id="yapiMaliyeti" inputmode="decimal">
         </div>
 
         <div class="form-group">
-            <label>Toplam Değer (TL)</label>
+            <label for="toplamDeger">Toplam Değer (TL)</label>
             <input type="number" id="toplamDeger" inputmode="decimal">
         </div>
 
         <div class="form-group">
-            <label>Şerefiye Oranı  Müteahhit Karı (%)</label>
+            <label for="serefiyeOrani">Şerefiye Oranı  Müteahhit Karı (%)</label>
             <input type="number" id="serefiyeOrani" inputmode="decimal">
         </div>
 
@@ -173,12 +207,12 @@
         </div>
 
         <div class="result-area" id="sonucAlani">
-            <div class="res-row"><span>Arsa Payı Alanı:</span> <strong id="resArsaPayiAlani">0</strong></div>
-            <div class="res-row"><span>Toplam Yapı Maliyeti:</span> <strong id="resYapiMaliyeti">0</strong></div>
-            <div class="res-row"><span>Şerefiye Değeri:</span> <strong id="resSerefiye">0</strong></div>
-            <div class="res-row"><span>Arsa Değeri:</span> <strong id="resArsaDegeri">0</strong></div>
+            <div class="res-row"><span id="resArsaLabel">Arsa Payı Alanı:</span> <strong id="resArsaPayiAlani">0,00 m²</strong></div>
+            <div class="res-row"><span>Toplam Yapı Maliyeti:</span> <strong id="resYapiMaliyeti">0,00 TL</strong></div>
+            <div class="res-row"><span>Şerefiye Değeri:</span> <strong id="resSerefiye">0,00 TL</strong></div>
+            <div class="res-row"><span>Arsa Değeri:</span> <strong id="resArsaDegeri">0,00 TL</strong></div>
             <div style="border-top:1px solid #d1d1d6; margin:8px 0;"></div>
-            <div class="res-row"><span>Birim Değer:</span> <strong class="highlight" id="resBirimDeger">0</strong></div>
+            <div class="res-row"><span>Birim Değer:</span> <strong class="highlight" id="resBirimDeger">0,00 TL/m²</strong></div>
         </div>
     </div>
 
@@ -189,12 +223,12 @@
                 <thead>
                     <tr>
                         <th>Tanım</th>
+                        <th>Yöntem</th>
                         <th>Birim Değer</th>
                         <th style="text-align:right">İşlem</th>
                     </tr>
                 </thead>
-                <tbody>
-                    </tbody>
+                <tbody></tbody>
             </table>
         </div>
         <div id="bosMesaj" style="text-align:center; padding:20px; color:#999; font-size:0.9rem;">Henüz kayıt yok.</div>
@@ -203,32 +237,72 @@
 </div>
 
 <script>
-    // Sayfa Yüklendiğinde
-    document.addEventListener('DOMContentLoaded', listeyiGuncelle);
+    // Aktif sekme: 'pay' (Arsa Payı) veya 'alan' (Arsa Alanı)
+    let aktifSekme = 'pay';
 
-    // Para Formatı (1.000,00 TL gibi)
+    // Sayfa Yüklendiğinde
+    document.addEventListener('DOMContentLoaded', function() {
+        listeyiGuncelle();
+        canliHesapla();
+
+        const alanlar = ['arsaAlani','arsaPay','arsaPayda','daireAlani','yapiMaliyeti','toplamDeger','serefiyeOrani'];
+        alanlar.forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', canliHesapla);
+        });
+    });
+
+    // Sekme değiştirme
+    function sekmeDegistir(mod) {
+        aktifSekme = mod;
+
+        document.getElementById('tabPay').classList.toggle('active', mod === 'pay');
+        document.getElementById('tabAlan').classList.toggle('active', mod === 'alan');
+
+        const rowPay = document.getElementById('rowPayGroup');
+        if (mod === 'pay') {
+            rowPay.style.display = 'flex';
+            document.getElementById('labelArsaAlani').innerText = 'Parsel Arsa Alanı (m²)';
+        } else {
+            rowPay.style.display = 'none';
+            document.getElementById('labelArsaAlani').innerText = 'Arsa Alanı (m²)';
+        }
+
+        canliHesapla();
+    }
+
+    // Para Formatı
     function formatTL(num) {
+        if (!isFinite(num)) num = 0;
         return num.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    // --- MATEMATİKSEL HESAPLAMA FONKSİYONU ---
-    // Bu fonksiyon sadece değerleri alır, hesaplar ve bir obje döndürür.
+    // Hesaplama
     function hesapla(veri) {
-        // 1. Arsa Payı Alanı = Arsa Alanı x Arsa Pay / Arsa Payda
-        let arsaPayiAlani = (veri.arsaAlani * veri.arsaPay) / (veri.arsaPayda || 1);
+        if (veri.mod === 'pay' && veri.arsaPayda <= 0) {
+            return {
+                arsaPayiAlani: 0,
+                toplamYapiMaliyeti: 0,
+                serefiyeDegeri: 0,
+                arsaDegeri: 0,
+                birimDeger: 0
+            };
+        }
 
-        // 2. Toplam Yapı Maliyeti = Daire Alanı x Yapı Birim Maliyeti
+        let arsaPayiAlani = 0;
+
+        if (veri.mod === 'pay') {
+            arsaPayiAlani = (veri.arsaAlani * veri.arsaPay) / (veri.arsaPayda || 1);
+        } else {
+            arsaPayiAlani = veri.arsaAlani;
+        }
+
         let toplamYapiMaliyeti = veri.daireAlani * veri.yapiMaliyeti;
+        let serefiyeDegeri     = veri.toplamDeger * (veri.serefiyeOrani / 100);
+        let arsaDegeri         = veri.toplamDeger - (toplamYapiMaliyeti + serefiyeDegeri);
 
-        // 3. Şerefiye = Toplam Değer x (Şerefiye Oranı / 100)
-        let serefiyeDegeri = veri.toplamDeger * (veri.serefiyeOrani / 100);
-
-        // 4. Arsa Değeri = Toplam Değer - (Yapı Maliyeti + Şerefiye)
-        let arsaDegeri = veri.toplamDeger - (toplamYapiMaliyeti + serefiyeDegeri);
-
-        // 5. Birim Değer = Arsa Değeri / Arsa Payı Alanı
         let birimDeger = 0;
-        if(arsaPayiAlani > 0) {
+        if (arsaPayiAlani > 0) {
             birimDeger = arsaDegeri / arsaPayiAlani;
         }
 
@@ -241,89 +315,126 @@
         };
     }
 
-    // --- EKRANA SONUÇ YAZMA FONKSİYONU ---
+    // Canlı hesaplama
+    function canliHesapla() {
+        const veri = formVerileriniAl(false);
+        const sonuc = hesapla(veri);
+        sonuclariGoster(sonuc);
+    }
+
+    // Sonuçları göster
     function sonuclariGoster(sonuc) {
+        // Etiket: Arsa Payı / Arsa Alanı
+        const label = document.getElementById('resArsaLabel');
+        label.innerText = (aktifSekme === 'pay') ? 'Arsa Payı Alanı:' : 'Arsa Alanı:';
+
         document.getElementById('resArsaPayiAlani').innerText = formatTL(sonuc.arsaPayiAlani) + " m²";
         document.getElementById('resYapiMaliyeti').innerText = formatTL(sonuc.toplamYapiMaliyeti) + " TL";
         document.getElementById('resSerefiye').innerText = formatTL(sonuc.serefiyeDegeri) + " TL";
         document.getElementById('resArsaDegeri').innerText = formatTL(sonuc.arsaDegeri) + " TL";
         document.getElementById('resBirimDeger').innerText = formatTL(sonuc.birimDeger) + " TL/m²";
-        
-        document.getElementById('sonucAlani').style.display = 'block';
     }
 
-    // --- VERİLERİ OKUMA ---
-    function formVerileriniAl() {
-        return {
+    // Form verisi okuma
+    function formVerileriniAl(validate = false) {
+        const veri = {
             id: document.getElementById('recordId').value,
+            mod: aktifSekme,
             ad: document.getElementById('kayitAdi').value || 'İsimsiz Kayıt',
             arsaAlani: parseFloat(document.getElementById('arsaAlani').value) || 0,
             arsaPay: parseFloat(document.getElementById('arsaPay').value) || 0,
-            arsaPayda: parseFloat(document.getElementById('arsaPayda').value) || 1,
+            arsaPayda: parseFloat(document.getElementById('arsaPayda').value) || 0,
             daireAlani: parseFloat(document.getElementById('daireAlani').value) || 0,
             yapiMaliyeti: parseFloat(document.getElementById('yapiMaliyeti').value) || 0,
             toplamDeger: parseFloat(document.getElementById('toplamDeger').value) || 0,
             serefiyeOrani: parseFloat(document.getElementById('serefiyeOrani').value) || 0
         };
+
+        if (validate) {
+            const zorunluGenel = [
+                { alan: 'arsaAlani',   deger: veri.arsaAlani,   etiket: 'Arsa Alanı' },
+                { alan: 'daireAlani',  deger: veri.daireAlani,  etiket: 'Daire Alanı' },
+                { alan: 'yapiMaliyeti',deger: veri.yapiMaliyeti,etiket: 'Yapı Birim Maliyeti' },
+                { alan: 'toplamDeger', deger: veri.toplamDeger, etiket: 'Toplam Değer' }
+            ];
+
+            const zorunluPay = [
+                { alan: 'arsaPay',   deger: veri.arsaPay,   etiket: 'Arsa Pay' },
+                { alan: 'arsaPayda', deger: veri.arsaPayda, etiket: 'Arsa Payda' }
+            ];
+
+            let zorunlu = zorunluGenel.slice();
+            if (veri.mod === 'pay') {
+                zorunlu = zorunlu.concat(zorunluPay);
+            }
+
+            const eksik = zorunlu.find(x => x.deger <= 0);
+            if (eksik) {
+                alert(eksik.etiket + " alanı boş bırakılamaz veya 0 olamaz.");
+                document.getElementById(eksik.alan).focus();
+                return null;
+            }
+
+            if (veri.mod === 'pay' && veri.arsaPayda <= 0) {
+                alert("Arsa Payda sıfır veya negatif olamaz.");
+                document.getElementById('arsaPayda').focus();
+                return null;
+            }
+        }
+
+        return veri;
     }
 
-    // --- ANA İŞLEM (BUTONA BASINCA) ---
+    // Kaydet & Hesapla
     function kaydetVeHesapla() {
-        let veri = formVerileriniAl();
-        let sonuc = hesapla(veri);
+        let veri = formVerileriniAl(true);
+        if (!veri) return;
 
-        // 1. Hesaplananları Ekrana Bas
+        let sonuc = hesapla(veri);
         sonuclariGoster(sonuc);
 
-        // 2. Kayıt Objesini Hazırla
         let yeniKayit = {
             id: veri.id ? parseInt(veri.id) : Date.now(),
             ad: veri.ad,
-            inputs: veri,  // Girdileri sakla
-            results: sonuc // Sonuçları da sakla (listeleme hızı için)
+            inputs: veri,
+            results: sonuc
         };
 
-        // 3. LocalStorage İşlemleri
         let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
 
         if (veri.id) {
-            // Güncelleme
             let index = kayitlar.findIndex(k => k.id == veri.id);
-            if(index !== -1) kayitlar[index] = yeniKayit;
+            if (index !== -1) kayitlar[index] = yeniKayit;
         } else {
-            // Yeni Ekleme
             kayitlar.push(yeniKayit);
         }
 
         localStorage.setItem('emlakDB', JSON.stringify(kayitlar));
-
-        // 4. Listeyi Güncelle
         listeyiGuncelle();
-        
-        // Eğer güncelleme ise işlem bitince formu temizle, 
-        // yeniyse kullanıcı sonucu görsün diye bırakıyoruz (tercihen).
-        if(veri.id) {
+
+        if (veri.id) {
             temizle();
         }
     }
 
-    // --- LİSTELEME ---
+    // Listeleme
     function listeyiGuncelle() {
         let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
         let tbody = document.querySelector('#listeTablosu tbody');
         tbody.innerHTML = '';
 
-        if(kayitlar.length === 0) {
+        if (kayitlar.length === 0) {
             document.getElementById('bosMesaj').style.display = 'block';
         } else {
             document.getElementById('bosMesaj').style.display = 'none';
-            // Tersten sırala (En son eklenen en üstte)
             kayitlar.slice().reverse().forEach(k => {
+                const yontemText = (k.inputs.mod === 'alan') ? 'Arsa Alanı' : 'Arsa Payı';
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>
                         <div style="font-weight:bold;">${k.ad}</div>
                     </td>
+                    <td>${yontemText}</td>
                     <td>${formatTL(k.results.birimDeger)}</td>
                     <td style="text-align:right">
                         <div class="action-btns">
@@ -337,28 +448,28 @@
         }
     }
 
-    // --- SİLME ---
+    // Silme
     function sil(id) {
-        if(confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+        if (confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
             let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
             kayitlar = kayitlar.filter(k => k.id !== id);
             localStorage.setItem('emlakDB', JSON.stringify(kayitlar));
             listeyiGuncelle();
             
-            // Eğer o an düzenlenen kaydı sildiysek formu da temizle
-            if(document.getElementById('recordId').value == id) {
+            if (document.getElementById('recordId').value == id) {
                 temizle();
             }
         }
     }
 
-    // --- DÜZENLEME (İstediğiniz kritik özellik burada) ---
+    // Düzenle
     function duzenle(id) {
         let kayitlar = JSON.parse(localStorage.getItem('emlakDB')) || [];
         let k = kayitlar.find(item => item.id === id);
 
-        if(k) {
-            // 1. Kutucukları Doldur
+        if (k) {
+            sekmeDegistir(k.inputs.mod || 'pay');
+
             document.getElementById('recordId').value = k.id;
             document.getElementById('kayitAdi').value = k.ad;
             document.getElementById('arsaAlani').value = k.inputs.arsaAlani;
@@ -369,23 +480,20 @@
             document.getElementById('toplamDeger').value = k.inputs.toplamDeger;
             document.getElementById('serefiyeOrani').value = k.inputs.serefiyeOrani;
 
-            // 2. Arayüzü Güncelleme Moduna Sok
             document.getElementById('editBanner').style.display = 'block';
             let btn = document.getElementById('btnIslem');
             btn.innerText = "GÜNCELLE";
-            btn.className = "btn-update"; // Rengi turuncu yap
+            btn.classList.remove('btn-calc');
+            btn.classList.add('btn-update');
 
-            // 3. KRİTİK ADIM: Sonuçları hemen hesapla ve göster
-            // Böylece kullanıcı "Düzenle" dediği an alttaki gri kutu açılır.
             let sonuc = hesapla(k.inputs);
             sonuclariGoster(sonuc);
 
-            // 4. Yukarı kaydır
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
-    // --- TEMİZLEME ---
+    // Temizle
     function temizle() {
         document.getElementById('recordId').value = '';
         document.getElementById('kayitAdi').value = '';
@@ -397,14 +505,19 @@
         document.getElementById('toplamDeger').value = '';
         document.getElementById('serefiyeOrani').value = '';
 
-        // Sonuç alanını gizle
-        document.getElementById('sonucAlani').style.display = 'none';
+        sonuclariGoster({
+            arsaPayiAlani: 0,
+            toplamYapiMaliyeti: 0,
+            serefiyeDegeri: 0,
+            arsaDegeri: 0,
+            birimDeger: 0
+        });
 
-        // Butonu ve arayüzü varsayılana çevir
         document.getElementById('editBanner').style.display = 'none';
         let btn = document.getElementById('btnIslem');
         btn.innerText = "HESAPLA & KAYDET";
-        btn.className = "btn-calc"; // Rengi mavi yap
+        btn.classList.remove('btn-update');
+        btn.classList.add('btn-calc');
     }
 </script>
 
